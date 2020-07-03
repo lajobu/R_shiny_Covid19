@@ -1,2 +1,44 @@
-# R_shiny_Covid19
-Dashboard shiny page on COVID-19
+# Dashboard page on COVID-19
+
+Here you can find my project `shiny app on COVID19` in R
+
+## [APP](https://lajobu.shinyapps.io/Covid-19_project/)
+## [R_markdown](https://github.com/lajobu/R_shiny_Covid19/blob/master/Covid-19-Project.Rmd)
+## [RPubs](https://rpubs.com/Lajobu/Covid-19_project)
+## [Data source](https://github.com/owid/covid-19-data/blob/master/public/data/owid-covid-data.csv)
+
+## Description:
+
+This project was made together with Noam Shmuel.
+
+As the world is in the midst of a once in a `century pandemic phase`, it would be natural for `Data Science students` to look closely into the data which is being generated on a daily basis.
+
+The aim of our project would be to be an `interactive web application` which will visualize different variables such as, new cases discovered, tests, recoveries and more. Ordered by country and time as per the user’s request.
+
+During the process of creating the `Shiny app` we would clean, filter and merge the data to fit our needs. This step would incorporate tools which we have learned during the course, such as `dplyr` and `tidyr`, even `creating functions`. This process will be presented as a `R-markdown file`.
+
+## Some screens of the app:
+
+## 1) First country:
+
+![alt text](https://github.com/lajobu/R_shiny_Covid19/blob/master/plot11.png)
+
+## 2) Second country:
+
+![alt text](https://github.com/lajobu/R_shiny_Covid19/blob/master/plot12.png)
+
+## 3) Country 1 vs Country 2 - same graph:
+
+![alt text](https://github.com/lajobu/R_shiny_Covid19/blob/master/plot21.png)
+
+## 4) Country 1 vs Country 2 - diferent graph:
+
+![alt text](https://github.com/lajobu/R_shiny_Covid19/blob/master/plot22.png)
+
+## 5) xtable - last data available:
+
+![alt text](https://github.com/lajobu/R_shiny_Covid19/blob/master/t_deaths.contry1.png)
+
+## 6) datatable - navigate through the data:
+
+![alt text](https://github.com/lajobu/R_shiny_Covid19/blob/master/filt.an.png)
