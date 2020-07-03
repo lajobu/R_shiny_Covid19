@@ -1,0 +1,639 @@
+---
+title: "Dashboard page on COVID-19"
+author: 'Jorge Bueno Perez  & Noam Shmuel'
+output:
+  html_document:
+    highlight: tango
+    lib_dir: libs
+    self_contained: yes
+    theme: spacelab
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 1) Project decription:
+
+As the world is in the midst of a once in a century pandemic phase, it would be natural for Data Science students to look closely into the data which is being generated on a daily basis.
+
+The aim of our project would be to be an interactive web application which will visualize different variables such as, new cases, new deaths and more. Ordered by country and time as per the user’s request.
+
+* Github repository: https://github.com/lajobu/R_shiny_Covid19
+* Data source: https://github.com/owid/covid-19-data/tree/master/public/data
+* See the project: 
+
+During the process of creating this project, we approached the next topics:
+
+* Writing own functions in R (including defensive programming)
+* Advanced data processing with dplyr, dtplyr, tidyr
+* Automation of scripts and reports (RMarkdown)
+* Shiny basics
+* Creating analytical dashboards
+
+# 2) First steps:
+
+## 2.1) Load libraries and data:
+
+```{r echo = T, results = 'hide', message= FALSE}
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(stringr)
+library(zoo)
+library(tools)
+library(shiny)
+library(xtable)
+library(shinydashboard)
+library(colourpicker)
+library(dashboardthemes)
+library(devtools)
+
+data <- read_csv("https://covid.ourworldindata.org/data/owid-covid-data.csv")
+
+choosen_countries <-
+  sort(c(unique(data$location)))
+
+data <- data %>%
+  filter(location %in% choosen_countries)
+```
+
+## 2.2) Functions:
+
+Along this project two functions were created:
+
+### 2.2.1) `an_fun`:
+
+This function was created to prepare the data to be displayed in the `dashboardSidebar`
+
+* Input: Five variables
+  + x variable `input$var` - Takes the variable selected
+  + y country1 `input$country` - Take the first country selected
+  + y1 country2 `input$country2`- Take the second country selected
+  + z date1 `input$dtr[1]` - Take the first value of the input date
+  + z1 date2 `input$dtr[2]`Take the second value of the input date
+  
+* Output: 
+
+  + It shows a `datatable` with the selected countries, data range and variable:
+  
+```{r echo = T, results = 'hide', message= FALSE}
+an_fun <- function(x, y, y1, z, z1) {
+  a <- data %>%
+    select(x, "location", "date") %>%
+    filter(location == y &
+             date %in%  c(seq(as.Date(z), as.Date(z1), "days"))) %>%
+    select(x, "date")
+  colnames(a) <- c(paste(y, sep = ""), "Date")
+  b <- data %>%
+    select(x, "location", "date") %>%
+    filter(location == y1 &
+             date %in%  c(seq(as.Date(z), as.Date(z1), "days"))) %>%
+    select(x, "date")
+  colnames(b) <- c(paste(y1, sep = ""), "Date")
+  c <- merge(a, b, all = TRUE, order = TRUE)
+  c[order(as.Date(c$Date, format = "%Y/%m/%d"), decreasing = TRUE), ] %>%
+    DT::datatable(rownames= FALSE, options = list(
+      iDisplayLength = 5,
+      aLengthMenu = c(5, 10, 15),
+      dom = 'ltp'
+    )) %>%
+    DT::formatStyle(-5, color = '#742448', fontWeight = 'bold')
+}
+```
+
+We can find below an example of how this function works:
+
+```{r, echo = T, message= FALSE}
+an_fun("new_deaths", "Poland", "Israel", "2020/03/25", "2020/05/30")
+```
+
+### 2.2.2) `an_fun_var`:
+
+This function was created to prepare the data to be displayed in the `dashboardSidebar`
+
+* Input: Five variables
+  + x country `input$country` or `input$country2` - Takes the variable country selected
+  
+  * Output: 
+  + It shows a `xtable` with the last data available (total cases, new cases and total deaths) for the selected country
+  
+```{r echo = T, results = 'hide', message= FALSE}
+an_fun_var <- function(x) {
+  a <- data %>%
+    select("total_cases",
+           "new_cases",
+           "total_deaths",
+           "new_deaths",
+           "location",
+           "date") %>%
+    filter(location == x) %>%
+    select("date",
+           "total_cases",
+           "new_cases",
+           "total_deaths",
+           "new_deaths")
+  b <- a[dim(a)[1], ] %>%
+    data.frame()
+  b$date <- as.character(b$date)
+  b$total_cases <- as.character(b$total_cases)
+  b$new_cases <- as.character(b$new_cases)
+  b$total_deaths <- as.character(b$total_deaths)
+  b$new_deaths <- as.character(b$new_deaths)
+  colnames(b) <-
+    c("Date",
+      "Total cases:",
+      "New cases:",
+      "Total deaths:",
+      "New deaths:")
+  b$Date <- as.character(b$Date)
+  xtable(b)
+}
+```
+
+We can find below an example of how this function works:
+
+```{r, echo = T, message= FALSE, results='asis'}
+an_fun_var("Poland") %>% 
+  print(type = "html")
+```
+
+# 3) Front-end: ui
+
+We decided to use `dashboardPage` because the design of the `dashboardSidebar` in which the user can select the different inputs was really convenience. The user is able to hide the `dashboardSidebar` once the input is selected, in order to see better the content of `dashboardBody`
+
+First of all, we defined several paramenters of `dashboardHeader` to title the page, but also `skin` which define the theme to be used
+
+## 3.1) `dashboardSidebar`:
+
+The `dashboardSidebar` is the left bar where the user is able to select the input, but also to see some information.
+
+It contains:
+
+* 2x `menuItem`
+* 5x `input`
+* 3x `output`
+
+### 3.1.1) `menuItem`:
+
+There were created two `menuItem` in order to show our names, but also a link with the original data.
+
+![](/Users/lajobu/Desktop/Projects/Adv R/untitled folder/menuItem.png)
+
+### 3.1.2) `input`:
+
+* `type.an` - The user is able to select the type of analysis:
+
+  + Total selected countries (selected)
+  + Comparison selected countries
+
+![](/Users/lajobu/Desktop/Projects/Adv R/untitled folder/type.an.png)
+
+* `var` - The user is able to select the type of variable:
+
+  + total_cases
+  + new_cases (selected)
+  + total_deaths
+  + new_deaths
+  + total_cases_per_million
+  + new_cases_per_million
+  + total_deaths_per_million
+  + new_deaths_per_million
+  + total_tests
+  + new_tests
+  + total_tests_per_thousand
+  + new_tests_per_thousand
+  
+![](/Users/lajobu/Desktop/Projects/Adv R/untitled folder/var.png)
+
+* `dtr` - The user is able to select the range of dates:
+
+  + begining (selected: 2020-03-01)
+  + end (selected: current date)
+  
+![](/Users/lajobu/Desktop/Projects/Adv R/untitled folder/dtr.png)
+
+* `country` - The user is able to select the first country:
+
+  + country (selected: Poland)
+  
+![](/Users/lajobu/Desktop/Projects/Adv R/untitled folder/country.png)
+
+* `country2` - The user is able to select the second country:
+
+  + country (selected: Israel)
+  
+![](/Users/lajobu/Desktop/Projects/Adv R/untitled folder/country2.png)
+
+### 3.1.3) `output`:
+
+* `t_deaths.contry1` - It resturns the output of the function `an_var_fun` for the first country selected:
+  
+![](/Users/lajobu/Desktop/Projects/Adv R/untitled folder/t_deaths.contry1.png)
+
+* `t_deaths.contry2` - It resturns the output of the function `an_var_fun` (xtable) for the second country selected:
+  
+![](/Users/lajobu/Desktop/Projects/Adv R/untitled folder/t_deaths.contry2.png)
+
+* `filt.an` - It resturns the output of the function `an_fun` (datatable) for the first country selected:
+  
+![](/Users/lajobu/Desktop/Projects/Adv R/untitled folder/filt.an.png)
+
+## 3.2) `dashboardBody`:
+
+There are two outputs: `plot1` and `plot2` that are showed depending of the selection of the user in the `dashboardSidebar` part.
+
+### 3.2.1) `plo1`:
+
+- When `Total selected countries` is selected. It plots two graphs.
+
+![](/Users/lajobu/Desktop/Projects/Adv R/untitled folder/plot11.png)
+![](/Users/lajobu/Desktop/Projects/Adv R/untitled folder/plot12.png)
+
+### 3.2.2) `plo2` 
+
+When `Comparison selected countries` is selected. It plots two graphs.
+
+![](/Users/lajobu/Desktop/Projects/Adv R/untitled folder/plot21.png)
+![](/Users/lajobu/Desktop/Projects/Adv R/untitled folder/plot22.png)
+
+### 3.2.3) CSS styles:
+
+Adittionally, there were created CSS style to be deployed in all the `dashboardPage`
+
+```{r echo = T, results = 'hide', message= FALSE}
+tags$head(tags$style(HTML(
+          ".content-wrapper {
+          background-color: white !important;
+          }
+          .main-header .logo {
+          font-family: 'Lobster';
+          font-weight: 600;
+          color: #742448 !important;
+          background-color: white !important;
+          }
+          .main-header .navbar {
+          background-color: white !important;
+          }
+          .main-sidebar {
+          background-color: white !important;
+          }
+          .main-sidebar .sidebar {
+          color: #742448 !important;
+          }")))
+```
+
+* There was selected `!important` to be sure that the style is deployed, instead of the one from `skin`
+
+# 4) Back-end: Server
+
+We used `reactive` in all the inputs selected in the `dashboardSidebar`, in order to be able to render the information selected.
+
+## 4.1) `dashboardSidebar`:
+
+### 4.1.1) `t_deaths.contry1`:
+
+The `t_deaths.contry1` was rendered with `renderTable`:
+
+```{r echo = T, results = 'hide', message= FALSE}
+"data_gen_an1 <- reactive({
+    an_fun_var(input$country)
+  })
+  output$t_deaths.contry1 <- renderTable({
+    data_gen_an1()
+  })"
+```
+
+### 4.1.2) `t_deaths.contry2`:
+
+The `t_deaths.contry2` was rendered with `renderTable`:
+
+```{r echo = T, results = 'hide', message= FALSE}
+"data_gen_an2 <- reactive({
+    an_fun_var(input$country2)
+  })
+  output$t_deaths.contry2 <- renderTable({
+    data_gen_an2()
+  })"
+```
+
+### 4.1.3) `filt.an`:
+
+The `filt.an` was rendered with `renderDT`:
+
+```{r echo = T, results = 'hide', message= FALSE}
+"filt_an <- reactive ({
+    an_fun(input$var,
+           input$country,
+           input$country2,
+           input$dtr[1],
+           input$dtr[2])
+  })
+  
+  output$filt.an <- DT::renderDT({
+    filt_an()
+  })
+  
+}"
+```
+
+## 4.2) `dashboardBody`:
+
+### 4.2.1) Label etc...
+
+```{r echo = T, results = 'hide', message= FALSE}
+"selectedData <- reactive({
+    data %>%
+      filter(location == input$country &
+               date >= input$dtr[1] & date <= input$dtr[2])
+  })
+  
+  selectedData1 <- reactive({
+    data %>%
+      filter(location == input$country2 &
+               date >= input$dtr[1] & date <= input$dtr[2])
+  })
+  
+  selectedData2 <- reactive({
+    data %>%
+      filter(
+        location %in% c(input$country, input$country2) &
+          date >= input$dtr[1] & date <= input$dtr[2]
+      )
+  })
+  
+  selectedMAdays <- reactive({
+    return(input$ma)
+  })
+  
+  selectedLabels <- reactive({
+    namcol <- input$var
+    namcol <- str_replace_all(namcol, '_', ' ')
+    namcol <- tools::toTitleCase(namcol)
+    return(namcol)
+  })"
+```
+
+### 4.2.2) `plot1`:
+
+The `plot1` was rendered with `renderPlot`:
+
+```{r echo = T, results = 'hide', message= FALSE}
+'graph_filter1 <- reactive({
+    
+    #Graphical - Total sel. countries"
+    if (input$type.an == "Total selected countries") {
+      
+      #plot 1.a - Graphical - Total sel. country1
+      ggplot(data = selectedData(), aes_string(x = "date", y = input$var)) +
+        geom_bar(
+          stat = "identity",
+          color = "#742448",
+          fill = "#742448",
+          width = .75
+        ) +
+        geom_text(
+          aes_string(label = input$var),
+          hjust = 1.1,
+          vjust = +0.39,
+          angle = 90,
+          size = 3.2,
+          color = "#ffffff"
+        ) +
+        geom_smooth(
+          method = "loess",
+          se = F,
+          color = "black",
+          size = 0.80,
+          alpha = 1
+        ) +
+        ylab(selectedLabels()) +
+        xlab("Date") +
+        theme(
+          axis.text.y = element_text(colour = "black", size = 12),
+          axis.text.x = element_text(colour = "black"),
+          axis.title.y = element_text(
+            size = 12,
+            hjust = 0.5,
+            vjust = 0.2,
+            colour = "#742448"
+          ),
+          axis.title.x = element_text(
+            size = 12,
+            hjust = 0.5,
+            vjust = 0.2,
+            colour = "#742448"
+          ),
+          title = element_text(
+            size = 12,
+            hjust = 0.5,
+            vjust = 0.2,
+            color = "#742448"
+          )
+        ) +
+        
+        scale_x_date(
+          date_breaks = "weeks",
+          date_labels = "%b %e",
+          date_minor_breaks = "1 days"
+        ) +
+        labs(
+          subtitle = str_c("From ", input$dtr[1], " to ", input$dtr[2]),
+          title = str_c(selectedLabels(), "in", input$country, sep = " ")
+        )
+      
+      #"Graphical - Comparison sel. countries"
+    } else if (input$type.an == "Comparison selected countries") {
+      
+      #Plot 2.a - Graphical - Comparison sel. countries
+      ggplot(data = selectedData2(),
+             aes_string(
+               x = "date",
+               y = input$var,
+               color = "location"
+             )) +
+        geom_line(alpha = 1, size = 2) +
+        ylab(selectedLabels()) +
+        xlab("Date") +
+        theme(
+          axis.text.y = element_text(colour = "black", size = 12),
+          axis.text.x = element_text(colour = "black"),
+          axis.title.y = element_text(
+            size = 12,
+            hjust = 0.5,
+            vjust = 0.2,
+            colour = "#742448"
+          ),
+          axis.title.x = element_text(
+            size = 12,
+            hjust = 0.5,
+            vjust = 0.2,
+            colour = "#742448"
+          ),
+          title = element_text(
+            size = 12,
+            hjust = 0.5,
+            vjust = 0.2,
+            color = "#742448"
+          )
+        ) +
+        scale_x_date(date_breaks = "weeks", date_labels = "%b %e") +
+        labs(
+          subtitle = str_c("From ", input$dtr[1], " to ", input$dtr[2]),
+          title = str_c(
+            selectedLabels(),
+            "in",
+            input$country,
+            "vs",
+            input$country2,
+            sep = " "
+          )
+        ) +
+        scale_color_manual(values = c("black", "#742448"))
+    }
+  })
+
+output$plot1 <- renderPlot({
+    graph_filter1()
+  })'
+```
+
+### 4.2.3) `plot2`:
+
+The `plot2` was rendered with `renderPlot`:
+
+```{r echo = T, results = 'hide', message= FALSE}
+'graph_filter2 <- reactive ({
+  
+    #Graphical - Total sel. countries" -
+    if (input$type.an == "Total selected countries") {
+      #plot 1.b - Graphical - Total sel. country2
+      ggplot(data = selectedData1(), aes_string(x = "date", y = input$var)) +
+        geom_bar(
+          stat = "identity",
+          color = "black",
+          fill = "black",
+          width = .75
+        ) +
+        geom_text(
+          aes_string(label = input$var),
+          hjust = 1.1,
+          vjust = +0.39,
+          angle = 90,
+          size = 3.2,
+          color = "#ffffff"
+        ) + 
+        geom_smooth(
+          method = "loess",
+          se = F,
+          color = "#742448",
+          size = 0.80,
+          alpha = 1
+        ) +
+        ylab(selectedLabels()) +
+        xlab("Date") +
+        theme(
+          axis.text.y = element_text(colour = "black", size = 12),
+          axis.text.x = element_text(colour = "black"),
+          axis.title.y = element_text(
+            size = 12,
+            hjust = 0.5,
+            vjust = 0.2,
+            colour = "#742448"
+          ),
+          axis.title.x = element_text(
+            size = 12,
+            hjust = 0.5,
+            vjust = 0.2,
+            colour = "#742448"
+          ),
+          title = element_text(
+            size = 12,
+            hjust = 0.5,
+            vjust = 0.2,
+            color = "#742448"
+          )
+        ) +
+        
+        scale_x_date(
+          date_breaks = "weeks",
+          date_labels = "%b %e",
+          date_minor_breaks = "1 days"
+        ) +
+        labs(
+          subtitle = str_c("From ", input$dtr[1], " to ", input$dtr[2]),
+          title = str_c(selectedLabels(), "in", input$country2, sep = " ")
+        )
+      
+      #"Graphical - Comparison sel. countries"
+    } else if (input$type.an == "Comparison selected countries") {
+      #Plot 2.b - Graphical - Comparison sel. countries
+      ggplot(data = selectedData2(),
+             aes_string(
+               x = "date",
+               y = input$var,
+               fill = "location"
+             )) +
+        geom_bar(stat = "identity", color = "white") +
+        ylab(selectedLabels()) +
+        xlab("Date") +
+        theme(
+          axis.text.y = element_text(colour = "black", size = 12),
+          axis.title.y = element_text(
+            size = 12,
+            hjust = 0.5,
+            vjust = 0.2,
+            colour = "#742448"
+          ),
+          axis.title.x = element_text(
+            size = 12,
+            hjust = 0.5,
+            vjust = 0.2,
+            colour = "#742448"
+          ),
+          title = element_text(
+            size = 12,
+            hjust = 0.5,
+            vjust = 0.2,
+            color = "#742448"
+          )
+        ) +
+        
+        scale_x_date(
+          date_breaks = "weeks",
+          date_labels = "%b %e",
+          date_minor_breaks = "weeks"
+        ) +
+        labs(
+          subtitle = str_c("in ", selectedLabels()),
+          title = str_c(
+            selectedLabels(),
+            " in ",
+            input$country,
+            " vs ",
+            input$country2,
+            " - shown in separate graphs",
+            sep = ""
+          )
+        ) +
+        facet_wrap( ~ selectedData2()$location) +
+        scale_fill_manual(values = c("black", "#742448"))
+    }
+  })
+
+output$plot2 <- renderPlot({
+    graph_filter2()
+  })'
+```
+
+# 5) Final call:
+
+As the project was created just in one file, with `ui` and `server` together, we should pass them to `shinyApp`:
+
+```{r echo = T, results = 'hide', message= FALSE}
+'shiny::shinyApp(ui, server)'
+```
