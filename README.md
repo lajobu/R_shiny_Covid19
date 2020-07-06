@@ -1,6 +1,6 @@
 # Dashboard page on COVID-19
 
-Here you can find my project `shiny app on COVID19` in R
+Here you can find my project `shiny app on COVID-19` in R
 
 ## [APP](https://lajobu.shinyapps.io/Covid-19_project/)
 ## [R_markdown](https://github.com/lajobu/R_shiny_Covid19/blob/master/Covid-19-Project.Rmd)
