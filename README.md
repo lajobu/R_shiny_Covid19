@@ -1,13 +1,15 @@
 # Dashboard page on COVID-19
 
-Here you can find my project `shiny app on COVID-19` in R
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## [APP](https://lajobu.shinyapps.io/Covid-19_project/)
-## [R_markdown](https://github.com/lajobu/R_shiny_Covid19/blob/master/Covid-19-Project.Rmd)
-## [RPubs](https://rpubs.com/Lajobu/Covid-19_project)
-## [Data source](https://github.com/owid/covid-19-data/blob/master/public/data/owid-covid-data.csv)
+Here you can find my project `shiny app on COVID-19` in `R`
 
-## Description:
+## [:white_check_mark: APP](https://lajobu.shinyapps.io/Covid-19_project/)
+## [:white_check_mark: R_markdown](https://github.com/lajobu/R_shiny_Covid19/blob/master/Covid-19-Project.Rmd)
+## [:white_check_mark: RPubs](https://rpubs.com/Lajobu/Covid-19_project)
+## [:white_check_mark: Data source](https://github.com/owid/covid-19-data/blob/master/public/data/owid-covid-data.csv)
+
+## :star: Description:
 
 This project was made together with Noam Shmuel.
 
@@ -17,25 +19,25 @@ The aim of our project would be to be an `interactive web application` which wil
 
 During the process of creating the `Shiny app` we would clean, filter and merge the data to fit our needs. This step would incorporate tools which we have learned during the course, such as `dplyr` and `tidyr`, even `creating functions`. This process will be presented as a `R-markdown file`.
 
-## Some screens of the app:
+## :star: Some screens of the app:
 
-## 1) First country:
+### :ballot_box_with_check: 1) First country:
 
 ![alt text](https://github.com/lajobu/R_shiny_Covid19/blob/master/plot11.png)
 
-## 2) Second country:
+### :ballot_box_with_check: 2) Second country:
 
 ![alt text](https://github.com/lajobu/R_shiny_Covid19/blob/master/plot12.png)
 
-## 3) Country 1 vs Country 2 - same graph:
+### :ballot_box_with_check: 3) Country 1 vs Country 2 - same graph:
 
 ![alt text](https://github.com/lajobu/R_shiny_Covid19/blob/master/plot21.png)
 
-## 4) Country 1 vs Country 2 - diferent graph:
+### :ballot_box_with_check: 4) Country 1 vs Country 2 - diferent graph:
 
 ![alt text](https://github.com/lajobu/R_shiny_Covid19/blob/master/plot22.png)
 
-## 5) xtable - last data available:
+### :ballot_box_with_check: 5) xtable - last data available:
 
 ![alt text](https://github.com/lajobu/R_shiny_Covid19/blob/master/t_deaths.contry1.png)
 
