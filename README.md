@@ -41,6 +41,6 @@ During the process of creating the `Shiny app` we would clean, filter and merge 
 
 ![alt text](https://github.com/lajobu/R_shiny_Covid19/blob/master/t_deaths.contry1.png)
 
-## 6) datatable - navigate through the data:
+## :ballot_box_with_check: 6) datatable - navigate through the data:
 
 ![alt text](https://github.com/lajobu/R_shiny_Covid19/blob/master/filt.an.png)
