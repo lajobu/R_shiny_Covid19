@@ -11,7 +11,7 @@ Here you can find my project `shiny app on COVID-19` in `R`
 
 ## :star: Description:
 
-This project was made together with Noam Shmuel.
+This project was made together with Noam Shmuel. 
 
 As the world is in the midst of a once in a `century pandemic phase`, it would be natural for `Data Science students` to look closely into the data which is being generated on a daily basis.
 
