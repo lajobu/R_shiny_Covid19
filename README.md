@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Here you can find my project `shiny app on COVID-19` in `R`
+Here you can find my project `shiny app on COVID-19` in `R` 
 
 ## [:white_check_mark: APP](https://lajobu.shinyapps.io/Covid-19_project/)
 ## [:white_check_mark: R_markdown](https://github.com/lajobu/R_shiny_Covid19/blob/master/Covid-19-Project.Rmd)
