@@ -13,8 +13,6 @@ This project has been made together with [Noam S.](https://github.com/noam3010)
 
 ## :star: Description:
 
-This project was made together with Noam Shmuel. 
-
 As the world is in the midst of a once in a `century pandemic phase`, it would be natural for `Data Science students` to look closely into the data which is being generated on a daily basis.
 
 The aim of our project would be to be an `interactive web application` which will visualize different variables such as, new cases discovered, tests, recoveries and more. Ordered by country and time as per the user’s request.
