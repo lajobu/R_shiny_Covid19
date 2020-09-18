@@ -4,6 +4,8 @@
 
 Here you can find my project `shiny app on COVID-19` in `R` 
 
+This project has been made together with [Noam S.](https://github.com/noam3010)
+
 ## [:white_check_mark: APP](https://lajobu.shinyapps.io/Covid-19_project/)
 ## [:white_check_mark: R_markdown](https://github.com/lajobu/R_shiny_Covid19/blob/master/Covid-19-Project.Rmd)
 ## [:white_check_mark: RPubs](https://rpubs.com/Lajobu/Covid-19_project)
